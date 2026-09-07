@@ -1,5 +1,4 @@
 use core::fmt;
-
 use glam::{Mat4, Vec3};
 
 struct Ray {
@@ -8,6 +7,10 @@ struct Ray {
 }
 
 impl Ray {
+    fn new(origin: Vec3, direction: Vec3) -> Ray {
+        Ray {origin, direction}
+    }
+
     fn get_origin(&self) -> Vec3 {
         self.origin
     }
@@ -37,7 +40,18 @@ impl fmt::Display for Ray {
 mod tests {
     use glam::Vec4;
 
-use super::*;
+    use super::*;
+
+     #[test]
+    fn new_ray_test() {
+        let r = Ray::new (
+            Vec3::new(1.0, 2.0, 3.0), 
+            Vec3::new(0.0, 0.0, 1.0)
+        );
+
+        assert_eq!(Vec3::new(1.0, 2.0, 3.0), r.origin);
+        assert_eq!(Vec3::new(0.0, 0.0, 1.0), r.direction);
+    }
 
     #[test]
     fn get_origin_test() {
@@ -66,10 +80,7 @@ use super::*;
             direction: Vec3::new(0.0, 0.0, 1.0),
         };
 
-
-
         assert_eq!(Vec3::new(0.0, 0.0, 3.0), r.find_point(3.0));
-
     }
 
     #[test]
@@ -80,16 +91,16 @@ use super::*;
         };
 
         let m = Mat4::from_cols(
-            Vec4::new(1.0, 0.0, 0.0, 0.0), 
+            Vec4::new(1.0, 0.0, 0.0, 0.0),
             Vec4::new(0.0, 1.0, 0.0, 0.0),
             Vec4::new(0.0, 0.0, 1.0, 0.0),
-            Vec4::new(3.0, 1.0, 2.0, 1.0));
+            Vec4::new(3.0, 1.0, 2.0, 1.0),
+        );
 
         r.transform(m);
 
         assert_eq!(Vec3::new(3.0, 1.0, 2.0), r.get_origin());
         assert_eq!(Vec3::new(0.0, 0.0, 1.0), r.get_direction());
-
     }
 
     #[test]
@@ -100,15 +111,15 @@ use super::*;
         };
 
         let m = Mat4::from_cols(
-            Vec4::new(2.0, 0.0, 0.0, 0.0), 
+            Vec4::new(2.0, 0.0, 0.0, 0.0),
             Vec4::new(0.0, 3.0, 0.0, 0.0),
             Vec4::new(0.0, 0.0, 5.0, 0.0),
-            Vec4::new(0.0, 0.0, 0.0, 1.0));
+            Vec4::new(0.0, 0.0, 0.0, 1.0),
+        );
 
         r.transform(m);
 
         assert_eq!(Vec3::new(2.0, 3.0, 5.0), r.get_origin());
         assert_eq!(Vec3::new(0.0, 0.0, 5.0), r.get_direction());
-
     }
 }
