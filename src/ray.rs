@@ -1,30 +1,30 @@
 use core::fmt;
 use glam::{Mat4, Vec3};
 
-struct Ray {
+pub struct Ray {
     origin: Vec3,
     direction: Vec3,
 }
 
 impl Ray {
-    fn new(origin: Vec3, direction: Vec3) -> Ray {
+    pub fn new(origin: Vec3, direction: Vec3) -> Ray {
         Ray {origin, direction}
     }
 
-    fn get_origin(&self) -> Vec3 {
+    pub fn get_origin(&self) -> Vec3 {
         self.origin
     }
 
-    fn get_direction(&self) -> Vec3 {
+    pub fn get_direction(&self) -> Vec3 {
         self.direction
     }
 
-    fn find_point(&self, t: f32) -> Vec3 {
+    pub fn find_point(&self, t: f32) -> Vec3 {
         // P(t) = O + tD
         self.origin + (t * self.direction)
     }
 
-    fn transform(&mut self, m: Mat4) {
+    pub fn transform(&mut self, m: Mat4) {
         self.origin = m.transform_point3(self.origin);
         self.direction = m.transform_vector3(self.direction);
     }
