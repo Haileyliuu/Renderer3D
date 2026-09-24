@@ -25,7 +25,9 @@ impl Ray {
     }
 
     pub fn transform(&mut self, m: Mat4) {
+        // transform point: extend origin by 1
         self.origin = m.transform_point3(self.origin);
+        // transform vector: extend by 0, so no translations apply
         self.direction = m.transform_vector3(self.direction);
     }
 }

@@ -1,7 +1,7 @@
 use crate::ray::Ray;    // crate::module(file name)::Struct
 use glam::{Vec3};
 
-struct Camera {
+pub struct Camera {
     eye: Vec3,
     u: Vec3,
     v: Vec3,
@@ -11,7 +11,7 @@ struct Camera {
 }
 
 impl Camera {
-    fn new(eye: Vec3, target: Vec3, aspect: f32, fov_deg: f32, up: Vec3) -> Camera {
+    pub fn new(eye: Vec3, target: Vec3, aspect: f32, fov_deg: f32, up: Vec3) -> Camera {
         let theta = fov_deg.to_radians();
         let h = (theta * 0.5).tan();
         let viewport_h = 2.0 * h;                   // view-plane height at d = 1
@@ -29,8 +29,8 @@ impl Camera {
     // returns camera ray given normalized (s, t) on a viewplane
     // (s, t) is a pixel on plane
     // find ray from eye of camera to pixel
-    fn get_ray(&self, s: f32, t: f32) -> Ray {  
-        // M =  eye + dw    (d = 1)
+    pub fn get_ray(&self, s: f32, t: f32) -> Ray {  
+        // M =  eye - dw    (d = 1)
         let m = self.eye - self.w;
 
         // lower_left = M - (h/2 * v) - (w/2 * u)
