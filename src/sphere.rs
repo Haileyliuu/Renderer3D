@@ -13,8 +13,12 @@ impl Sphere {
         Sphere{radius, position, color}
     }
 
+    pub fn get_color(&self) -> Color{
+        self.color
+    }
+
     // if ray intersects with sphere, return nearest point of intersection between t_min and t_max
-    pub fn ray_intersect(&self, ray: Ray, t_min: f32, t_max: f32) -> Option<Vec3> {
+    pub fn ray_intersect(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
         // put p = e + td into sphere equation (p − c) · (p − c) − R^2 = 0
         // gets a quadratic (A*t^2 + Bt + C = 0)
         
@@ -48,38 +52,40 @@ impl Sphere {
         }
 
         let hit_point = e + t * d;
-        return Some(hit_point);
-
+        return Some(Hit::new(t, hit_point, (hit_point - self.position)/self.radius));
     }
 }
 
 
+pub struct Hit {
+    pub t: f32,     // ray parameter at the hit
+    pub p: Vec3,    // hit point = e + t * d
+    pub n: Vec3     // unit surface normal at p
+}
+
+impl Hit {
+    pub fn new(t: f32, p: Vec3, n: Vec3) -> Hit{
+        Hit{t, p, n}
+    }
+
+    pub fn get_t(&self) -> f32 {
+        return self.t;
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::film::Color;
+    use crate::ray::Ray;
     use glam::Vec3;
 
-    fn assert_vec3_approx_eq(actual: Vec3, expected: Vec3) {
-        let epsilon = 0.0001;
-
+    fn assert_vec3_close(actual: Vec3, expected: Vec3) {
         assert!(
-            (actual.x - expected.x).abs() < epsilon,
-            "x: actual {}, expected {}",
-            actual.x,
-            expected.x
-        );
-        assert!(
-            (actual.y - expected.y).abs() < epsilon,
-            "y: actual {}, expected {}",
-            actual.y,
-            expected.y
-        );
-        assert!(
-            (actual.z - expected.z).abs() < epsilon,
-            "z: actual {}, expected {}",
-            actual.z,
-            expected.z
+            actual.abs_diff_eq(expected, 0.00001),
+            "expected {:?}, got {:?}",
+            expected,
+            actual
         );
     }
 
@@ -92,7 +98,7 @@ mod tests {
     }
 
     #[test]
-    fn intersection_returns_near_point() {
+    fn ray_hits_sphere_at_nearest_point() {
         let sphere = test_sphere();
 
         let ray = Ray::new(
@@ -100,15 +106,23 @@ mod tests {
             Vec3::new(0.0, 0.0, -1.0),
         );
 
-        let result = sphere.ray_intersect(ray, 0.0, f32::INFINITY);
+        let hit = sphere
+            .ray_intersect(&ray, 0.0, f32::INFINITY)
+            .expect("Ray should hit sphere");
 
-        assert!(result.is_some());
+        // The ray enters the sphere at z = -4.
+        assert!((hit.t - 4.0).abs() < 0.00001);
 
-        let point = result.unwrap();
+        assert_vec3_close(
+            hit.p,
+            Vec3::new(0.0, 0.0, -4.0),
+        );
 
-        // Ray intersects at t = 4 and t = 6.
-        // The nearer point is (0, 0, -4).
-        assert_vec3_approx_eq(point, Vec3::new(0.0, 0.0, -4.0));
+        // The outward normal at the front of the sphere points toward +z.
+        assert_vec3_close(
+            hit.n,
+            Vec3::new(0.0, 0.0, 1.0),
+        );
     }
 
     #[test]
@@ -120,32 +134,69 @@ mod tests {
             Vec3::new(0.0, 1.0, 0.0),
         );
 
-        let result = sphere.ray_intersect(ray, 0.0, f32::INFINITY);
+        let hit = sphere.ray_intersect(&ray, 0.0, f32::INFINITY);
 
-        assert!(result.is_none());
+        assert!(hit.is_none());
     }
 
     #[test]
-    fn tangent_ray_returns_tangent_point() {
+    fn tangent_ray_hits_sphere_once() {
         let sphere = test_sphere();
 
         let ray = Ray::new(
+            Vec3::new(0.0, 1.0, 0.0),
+            Vec3::new(0.0, 0.0, -1.0),
+        );
+
+        let hit = sphere
+            .ray_intersect(&ray, 0.0, f32::INFINITY)
+            .expect("Tangent ray should hit sphere");
+
+        assert!((hit.t - 5.0).abs() < 0.00001);
+
+        assert_vec3_close(
+            hit.p,
+            Vec3::new(0.0, 1.0, -5.0),
+        );
+
+        assert_vec3_close(
+            hit.n,
+            Vec3::new(0.0, 1.0, 0.0),
+        );
+    }
+
+    #[test]
+    fn ray_starting_inside_sphere_uses_far_intersection() {
+        let sphere = Sphere::new(
+            1.0,
+            Vec3::ZERO,
+            Color::new(1.0, 0.0, 0.0, 1.0),
+        );
+
+        let ray = Ray::new(
+            Vec3::ZERO,
             Vec3::new(1.0, 0.0, 0.0),
-            Vec3::new(0.0, 0.0, -1.0),
         );
 
-        let result = sphere.ray_intersect(ray, 0.0, f32::INFINITY);
+        let hit = sphere
+            .ray_intersect(&ray, 0.0, f32::INFINITY)
+            .expect("Ray should exit sphere");
 
-        assert!(result.is_some());
+        assert!((hit.t - 1.0).abs() < 0.00001);
 
-        let point = result.unwrap();
+        assert_vec3_close(
+            hit.p,
+            Vec3::new(1.0, 0.0, 0.0),
+        );
 
-        // The ray touches the sphere at exactly one point.
-        assert_vec3_approx_eq(point, Vec3::new(1.0, 0.0, -5.0));
+        assert_vec3_close(
+            hit.n,
+            Vec3::new(1.0, 0.0, 0.0),
+        );
     }
 
     #[test]
-    fn t_min_excludes_near_intersection_and_returns_far_point() {
+    fn t_range_can_select_far_intersection() {
         let sphere = test_sphere();
 
         let ray = Ray::new(
@@ -153,19 +204,27 @@ mod tests {
             Vec3::new(0.0, 0.0, -1.0),
         );
 
-        // Near intersection is t = 4.
-        // Since t_min is 5, the far intersection at t = 6 is returned.
-        let result = sphere.ray_intersect(ray, 5.0, f32::INFINITY);
+        // The intersections are t = 4 and t = 6.
+        // Excluding t = 4 should return the far intersection.
+        let hit = sphere
+            .ray_intersect(&ray, 4.5, 6.5)
+            .expect("Far intersection should be accepted");
 
-        assert!(result.is_some());
+        assert!((hit.t - 6.0).abs() < 0.00001);
 
-        let point = result.unwrap();
+        assert_vec3_close(
+            hit.p,
+            Vec3::new(0.0, 0.0, -6.0),
+        );
 
-        assert_vec3_approx_eq(point, Vec3::new(0.0, 0.0, -6.0));
+        assert_vec3_close(
+            hit.n,
+            Vec3::new(0.0, 0.0, -1.0),
+        );
     }
 
     #[test]
-    fn t_max_can_exclude_all_intersections() {
+    fn intersections_outside_t_range_return_none() {
         let sphere = test_sphere();
 
         let ray = Ray::new(
@@ -173,9 +232,8 @@ mod tests {
             Vec3::new(0.0, 0.0, -1.0),
         );
 
-        // Intersections are at t = 4 and t = 6.
-        let result = sphere.ray_intersect(ray, 0.0, 3.0);
+        let hit = sphere.ray_intersect(&ray, 6.1, 10.0);
 
-        assert!(result.is_none());
+        assert!(hit.is_none());
     }
 }

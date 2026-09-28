@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn find_point_test() {
-        let mut r = Ray {
+        let r = Ray {
             origin: Vec3::new(0.0, 0.0, 0.0),
             direction: Vec3::new(0.0, 0.0, 1.0),
         };
