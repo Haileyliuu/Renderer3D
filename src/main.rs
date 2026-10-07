@@ -1,13 +1,13 @@
 mod ray;
 mod camera;
 mod film;
-mod sphere;
+mod shape;
 mod render;
 
 use glam::Vec3;
 use camera::Camera;
 use film::Color;
-use sphere::Sphere;
+use shape::sphere::Sphere;
 
 
 
@@ -31,7 +31,7 @@ fn main() {
 
 
     // angle 2
-     let camera = Camera::new(Vec3::new(2.0, 0.0, -5.0), 
+    let camera = Camera::new(Vec3::new(2.0, 0.0, -5.0), 
                                     Vec3::new(0.0, 0.0, 0.0),
                                     1.5,
                                     90.0,

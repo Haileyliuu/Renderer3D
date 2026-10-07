@@ -1,24 +1,30 @@
-use crate::film::Color;
-use crate::ray::Ray;
-use glam::{Vec3};
+use crate::{film::Color, ray::Ray, shape::{Hit, Shape}};
+use glam::{Vec3, Mat4};
 
 pub struct Sphere {
     radius: f32,
     position: Vec3,
-    color: Color
+    color: Color,
+    transform: Mat4
 }
 
 impl Sphere {
     pub fn new(radius: f32, position: Vec3, color: Color) -> Sphere {
-        Sphere{radius, position, color}
+        Sphere{radius, position, color, transform: Mat4::IDENTITY}
     }
 
     pub fn get_color(&self) -> Color{
         self.color
     }
+}
 
-    // if ray intersects with sphere, return nearest point of intersection between t_min and t_max
-    pub fn ray_intersect(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
+impl Shape for Sphere {
+    fn transform(&mut self, m: Mat4) {
+        self.transform = m * self.transform;
+    }
+
+    // if ray intersects with sphere, return nearest hit between t_min and t_max
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
         // put p = e + td into sphere equation (p − c) · (p − c) − R^2 = 0
         // gets a quadratic (A*t^2 + Bt + C = 0)
         
@@ -57,21 +63,7 @@ impl Sphere {
 }
 
 
-pub struct Hit {
-    pub t: f32,     // ray parameter at the hit
-    pub p: Vec3,    // hit point = e + t * d
-    pub n: Vec3     // unit surface normal at p
-}
 
-impl Hit {
-    pub fn new(t: f32, p: Vec3, n: Vec3) -> Hit{
-        Hit{t, p, n}
-    }
-
-    pub fn get_t(&self) -> f32 {
-        return self.t;
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -107,7 +99,7 @@ mod tests {
         );
 
         let hit = sphere
-            .ray_intersect(&ray, 0.0, f32::INFINITY)
+            .hit(&ray, 0.0, f32::INFINITY)
             .expect("Ray should hit sphere");
 
         // The ray enters the sphere at z = -4.
@@ -134,7 +126,7 @@ mod tests {
             Vec3::new(0.0, 1.0, 0.0),
         );
 
-        let hit = sphere.ray_intersect(&ray, 0.0, f32::INFINITY);
+        let hit = sphere.hit(&ray, 0.0, f32::INFINITY);
 
         assert!(hit.is_none());
     }
@@ -149,7 +141,7 @@ mod tests {
         );
 
         let hit = sphere
-            .ray_intersect(&ray, 0.0, f32::INFINITY)
+            .hit(&ray, 0.0, f32::INFINITY)
             .expect("Tangent ray should hit sphere");
 
         assert!((hit.t - 5.0).abs() < 0.00001);
@@ -179,7 +171,7 @@ mod tests {
         );
 
         let hit = sphere
-            .ray_intersect(&ray, 0.0, f32::INFINITY)
+            .hit(&ray, 0.0, f32::INFINITY)
             .expect("Ray should exit sphere");
 
         assert!((hit.t - 1.0).abs() < 0.00001);
@@ -207,7 +199,7 @@ mod tests {
         // The intersections are t = 4 and t = 6.
         // Excluding t = 4 should return the far intersection.
         let hit = sphere
-            .ray_intersect(&ray, 4.5, 6.5)
+            .hit(&ray, 4.5, 6.5)
             .expect("Far intersection should be accepted");
 
         assert!((hit.t - 6.0).abs() < 0.00001);
@@ -232,7 +224,7 @@ mod tests {
             Vec3::new(0.0, 0.0, -1.0),
         );
 
-        let hit = sphere.ray_intersect(&ray, 6.1, 10.0);
+        let hit = sphere.hit(&ray, 6.1, 10.0);
 
         assert!(hit.is_none());
     }
