@@ -19,6 +19,10 @@ impl Shape for Plane {
         self.transform = m * self.transform;
     }
 
+    fn get_material(&self) -> Material {
+        self.material
+    }
+
     // if ray intersects with plane, return hit between t_min and t_max
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
         // put p = e + td into plane equation (p − a) * n = 0

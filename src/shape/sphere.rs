@@ -12,15 +12,15 @@ impl Sphere {
     pub fn new(radius: f32, position: Vec3, material: Material) -> Sphere {
         Sphere{radius, position, transform: Mat4::IDENTITY, material}
     }
-
-    pub fn get_material(&self) -> Material{
-        self.material
-    }
 }
 
 impl Shape for Sphere {
     fn transform(&mut self, m: Mat4) {
         self.transform = m * self.transform;
+    }
+
+    fn get_material(&self) -> Material {
+        self.material
     }
 
     // if ray intersects with sphere, return nearest hit between t_min and t_max

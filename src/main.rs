@@ -10,57 +10,68 @@ use camera::Camera;
 use film::Color;
 use shape::sphere::Sphere;
 
-use crate::material::{Light, Material};
+use crate::{material::{Light, Material}, shape::{Shape, plane::Plane}};
 
 
 
 fn main() {
+    // height and width of png
+    let aspect = 1.333;
+    let width = 1024;
+    let height = 768;
+
     // setup scene
     let material1 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.1, 0.1, 0.1), 8.0, Vec3::ZERO);
     let material2 = Material::new(Vec3::new(0.8, 1.0, 0.0), Vec3::new(0.1, 0.1, 0.1), 8.0, Vec3::ZERO);
     let material3 = Material::new(Vec3::new(0.2, 0.0, 0.9), Vec3::new(0.1, 0.1, 0.1), 8.0, Vec3::ZERO);
+    let material4 = Material::new(Vec3::new(0.2, 0.3, 0.4), Vec3::new(0.1, 0.1, 0.1), 8.0, Vec3::ZERO);
+    let material5 = Material::new(Vec3::new(0.6, 0.3, 0.3), Vec3::new(0.1, 0.1, 0.1), 8.0, Vec3::ZERO);
 
-    let sphere1 = Sphere::new(1.0, Vec3::new(1.0, 1.0, 1.0), material1);
-    let sphere2 = Sphere::new(1.5, Vec3::new(3.0, 2.0, 4.0), material2);
-    let sphere3 = Sphere::new(1.2, Vec3::new(4.0, 0.0, 6.0), material3);
-    let spheres = vec![sphere1, sphere2, sphere3];
+    let sphere1 = Sphere::new(1.2, Vec3::new(-6.0, 1.0, 0.0), material1);
+    let sphere2 = Sphere::new(1.2, Vec3::new(-2.0, 1.0, 0.0), material2);
+    let sphere3 = Sphere::new(1.2, Vec3::new(2.0, 1.0, 0.0), material3);
+    let sphere4 = Sphere::new(1.2, Vec3::new(6.0, 1.0, 0.0), material4);
+
+    let plane = Plane::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0), material5);
+    let shapes: Vec<Box<dyn Shape>> = vec![Box::new(sphere1), Box::new(sphere2), Box::new(sphere3), Box::new(sphere4), Box::new(plane)];
     
     // lights
-    let light1 = Light::new(Vec3::new(0.0, 10.0, 0.0), Vec3::new(1.0, 1.0, 1.0));
-    let lights = vec![light1];
+    let light1 = Light::new(Vec3::new(-4.0, 10.0, 0.0), Vec3::new(1.0, 1.0, 1.0));
+    let light2 = Light::new(Vec3::new(4.0, 10.0, 0.0), Vec3::new(0.2, 0.5, 0.2));
+    let lights = vec![light1, light2];
 
     // angle 1
-    let camera = Camera::new(Vec3::new(-4.0, 5.0, 3.0), 
+    let camera = Camera::new(Vec3::new(0.0, 5.0, 5.0), 
                                     Vec3::new(0.0, 0.0, 0.0),
-                                    1.5,
+                                    aspect,
                                     90.0,
                                     Vec3::new(0.0, 1.0, 0.0));
 
-    let film = render::render_scene(&camera, 1500, 1000, &spheres, &lights);
+    let film = render::render_scene(&camera, width, height, &shapes, &lights);
 
     film.save("images/angle1.png");
 
 
     // angle 2
-    let camera = Camera::new(Vec3::new(2.0, 0.0, -5.0), 
+    let camera = Camera::new(Vec3::new(-2.0, 5.0, 5.0), 
                                     Vec3::new(0.0, 0.0, 0.0),
-                                    1.5,
+                                    aspect,
                                     90.0,
                                     Vec3::new(0.0, 1.0, 0.0));
 
-    let film = render::render_scene(&camera, 1500, 1000, &spheres, &lights);
+    let film = render::render_scene(&camera, width, height, &shapes, &lights);
 
     film.save("images/angle2.png");
 
 
     // angle 3
-    let camera = Camera::new(Vec3::new(3.0, 0.0, 10.0), 
+    let camera = Camera::new(Vec3::new(0.0, 1.0, 7.0), 
                                     Vec3::new(0.0, 0.0, 0.0),
-                                    1.5,
+                                    aspect,
                                     90.0,
                                     Vec3::new(0.0, 1.0, 0.0));
 
-    let film = render::render_scene(&camera, 1500, 1000, &spheres, &lights);
+    let film = render::render_scene(&camera, width, height, &shapes, &lights);
 
     film.save("images/angle3.png");
 

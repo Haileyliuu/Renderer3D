@@ -2,13 +2,15 @@ pub mod sphere;
 pub mod plane;
 
 use glam::{Mat4, Vec3};
-use crate::ray::Ray;
+use crate::{material::Material, ray::Ray};
 
 pub trait Shape {
     // methods automatically public bc trait is pub
     
     // to store its translate, rotation, scale
     fn transform(&mut self, m: Mat4);
+
+    fn get_material(&self) -> Material;
 
     // returns nearest hit between tmin, tmax
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit>; 

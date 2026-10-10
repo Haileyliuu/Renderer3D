@@ -1,8 +1,5 @@
-use std::cmp::max_by;
-
 use glam::Vec3;
-
-use crate::{camera::Camera, film::Color, shape::Hit};
+use crate::{camera::Camera, film::Color, ray::Ray, shape::{Hit, Shape}};
 
 #[derive(Clone, Copy)]
 pub struct Material {
@@ -18,7 +15,7 @@ impl Material {
     }
 
     // uses Blinn Phong shading to shade pixel 
-    pub fn shade_pixel(&self, camera: &Camera, hit: &Hit, lights: &[Light]) -> Color {
+    pub fn shade_pixel(&self, camera: &Camera, hit: &Hit, shapes: &[Box<dyn Shape>], lights: &[Light]) -> Color {
         // Blinn Phong: L = ka Ia + sum(kd I max(0, n · l) + ks I max(0, n · h)^p)
         // Get p, n, and the material: ka, kd, ks, p
         
@@ -37,16 +34,30 @@ impl Material {
         // sum(kd I max(0, n · l) + ks I max(0, n · h)^p)
         let mut L : Vec3 = ambient;
         for light in lights {
-            // l points from hit point to light
+            // l points from hit point to light (stores the direction)
             let l = (light.position - hit.p).normalize();
+            // t light = distance to light (for shadow)
+            let t_light = (light.position - hit.p).length();
             
-            let diffuse = self.k_d * light.intensity * n.dot(l).max(0.0);
+            // Shadow Test ----------------------
+            // Build a ray from p toward the light
+            let mut skip_light = false;
+            let shadow_ray = Ray::new(hit.p, l);
+            let epsilon = 0.0001;
+            for shape in shapes {
+                if shape.hit(&shadow_ray, epsilon, t_light).is_some() {
+                    skip_light = true;
+                }
+            }
+            if !skip_light {
+                let diffuse = self.k_d * light.intensity * n.dot(l).max(0.0);
 
-            // find h: the half vector between l and v
-            let h = (v + l).normalize();
-            let specular = self.k_s * light.intensity * n.dot(h).max(0.0).powf(self.p);
+                // find h: the half vector between l and v
+                let h = (v + l).normalize();
+                let specular = self.k_s * light.intensity * n.dot(h).max(0.0).powf(self.p);
 
-            L += diffuse + specular;
+                L += diffuse + specular;
+            }
         }
         
         // return the color of the pixel

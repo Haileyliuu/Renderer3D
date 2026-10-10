@@ -1,6 +1,6 @@
 use crate::{camera::Camera, film::{Color, Film}, material::Light, shape::{Shape, sphere::Sphere}};
 
-pub fn render_scene(camera: &Camera, width: u32, height: u32, shapes: &[Sphere], lights: &[Light]) -> Film{
+pub fn render_scene(camera: &Camera, width: u32, height: u32, shapes: &[Box<dyn Shape>], lights: &[Light]) -> Film{
     let mut film = Film::new(width, height);
     let background = Color::new(0.2, 0.2, 0.2, 1.0);
 
@@ -15,10 +15,10 @@ pub fn render_scene(camera: &Camera, width: u32, height: u32, shapes: &[Sphere],
             // sort sphere nearest t is color
             let mut color = background;
             let mut min_t = f32::MAX;
-            for sphere in shapes {
-                if let Some(hit) = sphere.hit(&ray, 0.0, 20.0) {
+            for shape in shapes {
+                if let Some(hit) = shape.hit(&ray, 0.0, 20.0) {
                     if hit.get_t() < min_t {
-                        color = sphere.get_material().shade_pixel(&camera, &hit, lights);
+                        color = shape.get_material().shade_pixel(&camera, &hit, shapes, lights);
                         min_t = hit.get_t();
                     }
                 }
