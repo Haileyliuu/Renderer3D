@@ -2,12 +2,12 @@ use crate::ray::Ray;    // crate::module(file name)::Struct
 use glam::{Vec3};
 
 pub struct Camera {
-    eye: Vec3,
-    u: Vec3,
-    v: Vec3,
-    w: Vec3,
-    viewport_h: f32,
-    viewport_w: f32
+    pub eye: Vec3,
+    pub u: Vec3,
+    pub v: Vec3,
+    pub w: Vec3,
+    pub viewport_h: f32,
+    pub viewport_w: f32
 }
 
 impl Camera {

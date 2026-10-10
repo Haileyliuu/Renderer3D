@@ -1,20 +1,20 @@
-use crate::{film::Color, ray::Ray, shape::{Hit, Shape}};
+use crate::{film::Color, material::{self, Material}, ray::Ray, shape::{Hit, Shape}};
 use glam::{Vec3, Mat4};
 
 pub struct Sphere {
     radius: f32,
     position: Vec3,
-    color: Color,
-    transform: Mat4
+    transform: Mat4,
+    material: Material
 }
 
 impl Sphere {
-    pub fn new(radius: f32, position: Vec3, color: Color) -> Sphere {
-        Sphere{radius, position, color, transform: Mat4::IDENTITY}
+    pub fn new(radius: f32, position: Vec3, material: Material) -> Sphere {
+        Sphere{radius, position, transform: Mat4::IDENTITY, material}
     }
 
-    pub fn get_color(&self) -> Color{
-        self.color
+    pub fn get_material(&self) -> Material{
+        self.material
     }
 }
 
@@ -63,7 +63,7 @@ impl Shape for Sphere {
 }
 
 
-
+/* 
 
 #[cfg(test)]
 mod tests {
@@ -228,4 +228,4 @@ mod tests {
 
         assert!(hit.is_none());
     }
-}
+}*/

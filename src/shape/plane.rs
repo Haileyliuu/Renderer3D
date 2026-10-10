@@ -1,15 +1,16 @@
-use crate::{ray::Ray, shape::{Hit, Shape}};
+use crate::{material::Material, ray::Ray, shape::{Hit, Shape}};
 use glam::{Mat4, Vec3};
 
 pub struct Plane {
     a: Vec3,    // point on the plane
     n: Vec3,    // normal vector
-    transform: Mat4
+    transform: Mat4,
+    material: Material
 }
 
 impl Plane {
-    pub fn new(a: Vec3, n: Vec3) -> Plane {
-        Plane {a, n, transform: Mat4::IDENTITY}
+    pub fn new(a: Vec3, n: Vec3, material: Material) -> Plane {
+        Plane {a, n, transform: Mat4::IDENTITY, material}
     }
 }
 
