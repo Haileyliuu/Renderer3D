@@ -1,4 +1,4 @@
-use crate::{film::Color, material::{self, Material}, ray::Ray, shape::{Hit, Shape}};
+use crate::{material::{Material}, ray::Ray, shape::{Hit, Shape}};
 use glam::{Vec3, Mat4};
 
 pub struct Sphere {

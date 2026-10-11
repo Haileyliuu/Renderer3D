@@ -6,12 +6,11 @@ pub struct Material {
     k_d: Vec3,      // diffuse color
     k_s: Vec3,      // specular color
     p: f32,         // Phong exponent
-    k_m: Vec3,      // mirror coefficient (0 = not a mirror)
 }
 
 impl Material {
-    pub fn new(k_d: Vec3, k_s: Vec3, p: f32, k_m: Vec3) -> Material{
-        Material { k_d, k_s, p, k_m }
+    pub fn new(k_d: Vec3, k_s: Vec3, p: f32) -> Material{
+        Material { k_d, k_s, p}
     }
 
     // uses Blinn Phong shading to shade pixel 
