@@ -22,11 +22,11 @@ impl Material {
         let n = hit.n.normalize();
         
         // compute v, the unit vector from p toward the eye
-        let v = camera.eye - hit.p.normalize();
+        let v = (camera.eye - hit.p).normalize();
 
         // first term ambient: ka Ia 
         // ka = kd; Ia = a small constant, light from everywhere
-        let ia = Vec3::new(0.1, 0.1, 0.1);
+        let ia = Vec3::new(0.3, 0.3, 0.3);
         let ambient = self.k_d * ia;
 
         // for each light in the scene
@@ -59,6 +59,9 @@ impl Material {
             }
         }
         
+        // clamp L between [0, 1]
+        L = L.clamp(Vec3::ZERO, Vec3::ONE);
+
         // return the color of the pixel
         let colorL = Color::new(L.x, L.y, L.z, 1.0);
         return  colorL;
