@@ -48,13 +48,13 @@ fn main() {
     let red_light = Light::new(Vec3::new(-4.0, 10.0, 0.0), Vec3::new(0.5, 0.2, 0.2)); // red light
     let green_light = Light::new(Vec3::new(4.0, 10.0, 0.0), Vec3::new(0.2, 0.5, 0.2)); // green light
     let blue_light = Light::new(Vec3::new(4.0, 5.0, 0.0), Vec3::new(0.1, 0.1, 0.5)); // blue light
-    let lights = vec![white_light];
+    let lights = vec![white_light, blue_light];
 
     // angle 1
-    let camera = Camera::new(Vec3::new(0.0, 5.0, 5.0), 
+    let camera = Camera::new(Vec3::new(0.0, 8.0, 8.0), 
                                     Vec3::new(0.0, 0.0, 0.0),
                                     aspect,
-                                    90.0,
+                                    60.0,
                                     Vec3::new(0.0, 1.0, 0.0));
 
     let film = render::render_scene(&camera, width, height, &shapes, &lights);
@@ -63,10 +63,10 @@ fn main() {
 
 
     // angle 2
-    let camera = Camera::new(Vec3::new(-2.0, 5.0, 5.0), 
+    let camera = Camera::new(Vec3::new(-4.0, 8.0, 8.0), 
                                     Vec3::new(0.0, 0.0, 0.0),
                                     aspect,
-                                    90.0,
+                                    60.0,
                                     Vec3::new(0.0, 1.0, 0.0));
 
     let film = render::render_scene(&camera, width, height, &shapes, &lights);
@@ -75,10 +75,10 @@ fn main() {
 
 
     // angle 3
-    let camera = Camera::new(Vec3::new(0.0, 1.0, 7.0), 
+    let camera = Camera::new(Vec3::new(0.0, 1.0, 10.0), 
                                     Vec3::new(0.0, 0.0, 0.0),
                                     aspect,
-                                    90.0,
+                                    60.0,
                                     Vec3::new(0.0, 1.0, 0.0));
 
     let film = render::render_scene(&camera, width, height, &shapes, &lights);
@@ -94,10 +94,10 @@ fn main() {
     let plane = Plane::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0), light_gray);
     let shinyness: Vec<Box<dyn Shape>> = vec![Box::new(shiny_sphere1), Box::new(shiny_sphere2), Box::new(shiny_sphere3), Box::new(shiny_sphere4), Box::new(plane)];
 
-    let camera = Camera::new(Vec3::new(0.0, 5.0, 5.0), 
+    let camera = Camera::new(Vec3::new(0.0, 8.0, 8.0), 
                                     Vec3::new(0.0, 0.0, 0.0),
                                     aspect,
-                                    90.0,
+                                    60.0,
                                     Vec3::new(0.0, 1.0, 0.0));
 
     let film = render::render_scene(&camera, width, height, &shinyness, &lights);
