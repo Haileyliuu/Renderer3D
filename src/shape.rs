@@ -1,5 +1,6 @@
 pub mod sphere;
 pub mod plane;
+pub mod triangle;
 
 use glam::{Mat4, Vec3};
 use crate::{material::Material, ray::Ray};
