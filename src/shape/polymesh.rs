@@ -25,29 +25,32 @@ impl PolyMesh {
         let e = ray.get_origin(); 
 
         // hit point for triangle: p = (1 - beta - gamma)a + beta b + gamma c
-        // rearrange with ray equation (p = e + t*d): (a - b) beta + (a - c) gamma + d t = a - e
-        // c0 * beta + c1 * gamma + d * t = rhs
-        let (c0, c1) = (a - b, a - c); // the two columns
-        let rhs = a - e; // right-hand side
+        // rearrange with ray equation (p = e + t*d): (b - a) beta + (c - a) gamma - d*t = e - a
+        // e1 * beta + e2 * gamma - d * t = s
+        let (e1, e2) = (b - a, c - a); // the two columns
 
-        // determinant of | a-b   a-c   d |
-        let det = Mat3::from_cols(c0, c1, d).determinant();
+        // determinant of | b-a   c-a   -d |
+        let p_vec = d.cross(e2);
+        let det = e1.dot(p_vec);
         if det.abs() < 1e-8 {return None;}  // ray parallel to the plane
 
-        let t = Mat3::from_cols(c0, c1, rhs).determinant() / det;
+        let inv = 1.0 / det;
+        let s = e - a;
+        let beta = s.dot(p_vec) * inv;
+        if beta < 0.0 || beta > 1.0 {
+            return None;    // point not inside triangle (beta not between 0, 1)
+        }
+
+        let q_vec = s.cross(e1);
+        let gamma = d.dot(q_vec) * inv;
+        if gamma < 0.0 || beta + gamma > 1.0 {
+            return None;    // alpha = 1 - beta - gamma
+                            // For point inside triangle: beta >=0, gamma >= 0, beta + gamma <= 1
+        }
+
+        let t = e2.dot(q_vec) * inv;
         if t<t_min || t>t_max {
             return None;    // too close or too far
-        }
-
-        let gamma = Mat3::from_cols(c0, rhs, d).determinant() / det;
-        if gamma<0.0 || gamma>1.0 {
-            return None;    // point not inside triangle (gamma not between 0, 1)
-        }
-
-        let beta = Mat3::from_cols(rhs, c1, d).determinant() / det;
-        if beta < 0.0 || beta > 1.0 - gamma {
-            return None;    // alpha = 1 - beta - gamma
-                            // For point inside triangle: beta >=0, gamme >= 0, beta + gamma <= 1
         }
 
         let face_normal = (b - a).cross(c - a).normalize();
