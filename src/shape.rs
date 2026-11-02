@@ -1,6 +1,7 @@
 pub mod sphere;
 pub mod plane;
 pub mod triangle;
+pub mod polymesh;
 
 use glam::{Mat4, Vec3};
 use crate::{material::Material, ray::Ray};
@@ -21,7 +22,7 @@ pub trait Shape {
 pub struct Hit {
     pub t: f32,     // ray parameter at the hit
     pub p: Vec3,    // hit point = e + t * d
-    pub n: Vec3     // unit surface normal at p
+    pub n: Vec3,     // unit surface normal at p
 }
 
 impl Hit {
@@ -31,5 +32,9 @@ impl Hit {
 
     pub fn get_t(&self) -> f32 {
         return self.t;
+    }
+
+    pub fn get_n(&self) -> Vec3 {
+        return self.n;
     }
 }
