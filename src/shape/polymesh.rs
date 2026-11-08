@@ -17,6 +17,7 @@ impl PolyMesh {
 
      pub fn default() -> PolyMesh {
         let light_gray = Material::new(Vec3::new(0.7, 0.7, 0.7), Vec3::new(0.1, 0.1, 0.1), 8.0);
+        //let red = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.3, 0.3, 0.3), 100.0);
         PolyMesh {vertices: Vec::<Vec3>::new(), triangles: Vec::<[u32; 3]>::new(), normals: Vec::<Vec3>::new(), 
                    normal_indices: Vec::<[u32; 3]>::new(), transform: Mat4::IDENTITY, material: light_gray}
      }

@@ -86,18 +86,20 @@ fn main() {
     let smooth_mesh = PolyMesh::new(smooth_vertices, smooth_triangles, smooth_normals, smooth_normals_indices, yellow);
 
     let blueberry = obj_loader::load_obj_file("models/blueberry.obj").expect("Could not load OBJ file");
-    let shapes: Vec<Box<dyn Shape>> = vec![Box::new(blueberry), Box::new(plane)];
+    let table_vase = obj_loader::load_obj_file("models/table_vase.obj").expect("Could not load OBJ file");
+    let shapes: Vec<Box<dyn Shape>> = vec![Box::new(table_vase)];
     
     // lights
-    let white_light = Light::new(Vec3::new(-4.0, 10.0, 0.0), Vec3::new(0.8, 0.8, 0.8)); // white light
+    let white_light = Light::new(Vec3::new(-2.0, 10.0, -6.0), Vec3::new(1.0, 1.0, 1.0)); // white light
     let red_light = Light::new(Vec3::new(-4.0, 10.0, 0.0), Vec3::new(0.5, 0.2, 0.2)); // red light
     let green_light = Light::new(Vec3::new(4.0, 10.0, 0.0), Vec3::new(0.2, 0.5, 0.2)); // green light
     let blue_light = Light::new(Vec3::new(4.0, 5.0, 0.0), Vec3::new(0.1, 0.1, 0.5)); // blue light
-    let lights = vec![white_light, blue_light];
+    let pink_light = Light::new(Vec3::new(4.0, 2.0, 1.0), Vec3::new(0.5, 0.3, 0.4)); // blue light
+    let lights = vec![white_light, pink_light];
 
     // angle 1
-    let camera = Camera::new(Vec3::new(0.0, 8.0, 8.0), 
-                                    Vec3::new(0.0, 0.0, 0.0),
+    let camera = Camera::new(Vec3::new(0.09, 3.42, -5.42), 
+                                    Vec3::new(0.0, 2.0, 0.0),
                                     aspect,
                                     60.0,
                                     Vec3::new(0.0, 1.0, 0.0));
@@ -108,8 +110,8 @@ fn main() {
 
 
     // angle 2
-    let camera = Camera::new(Vec3::new(-4.0, 8.0, 8.0), 
-                                    Vec3::new(0.0, 0.0, 0.0),
+    let camera = Camera::new(Vec3::new(5.0, 5.8, 1.0), 
+                                    Vec3::new(0.0, 2.0, 0.0),
                                     aspect,
                                     60.0,
                                     Vec3::new(0.0, 1.0, 0.0));
@@ -120,8 +122,8 @@ fn main() {
 
 
     // angle 3
-    let camera = Camera::new(Vec3::new(0.0, 1.0, 10.0), 
-                                    Vec3::new(0.0, 0.0, 0.0),
+    let camera = Camera::new(Vec3::new(-5.09, 6.74, 5.0), 
+                                    Vec3::new(0.0, 2.0, 0.0),
                                     aspect,
                                     60.0,
                                     Vec3::new(0.0, 1.0, 0.0));
