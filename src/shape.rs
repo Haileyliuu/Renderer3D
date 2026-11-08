@@ -1,6 +1,5 @@
 pub mod sphere;
 pub mod plane;
-pub mod triangle;
 pub mod polymesh;
 
 use glam::{Mat4, Vec3};
