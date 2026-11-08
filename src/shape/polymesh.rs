@@ -1,4 +1,4 @@
-use glam::{Mat3, Mat4, Vec3};
+use glam::{Mat4, Vec3};
 use crate::{material::Material, ray::Ray, shape::{Hit, Shape}};
 
 pub struct PolyMesh {
@@ -20,6 +20,7 @@ impl PolyMesh {
         [self.vertices[i as usize], self.vertices[j as usize], self.vertices[k as usize]] 
      }
 
+     // if ray intersects with triangle, return nearest t and beta, gamma, face_normal between t_min and t_max
      fn hit_triangle(a: Vec3, b: Vec3, c: Vec3, ray: &Ray, t_min: f32, t_max: f32) -> Option<(f32, f32, f32, Vec3)> {
         let d = ray.get_direction();
         let e = ray.get_origin(); 
@@ -58,7 +59,7 @@ impl PolyMesh {
         Some((t, beta, gamma, face_normal))
     }
 
-    // return shading normal from 
+    // return shading normal from interpolizing across triangle 
     fn shading_normal(&self, tri: usize, beta: f32, gamma: f32, face_normal: Vec3) -> Vec3 {
         // flat shading
         if self.normals.is_empty() {
@@ -87,6 +88,7 @@ impl Shape for PolyMesh {
         self.material
     }
 
+    // return the closest hit where the ray hit the mesh
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
         let d = ray.get_direction();
         let e = ray.get_origin(); 
@@ -94,9 +96,11 @@ impl Shape for PolyMesh {
         let mut best: Option<Hit> = None;
         let mut closest = t_max;
 
+        // go through triangles to find which one was closest hit 
         for i in 0..self.triangles.len() {
             let vertices = self.corners(i);
             let (a, b, c) = (vertices[0], vertices[1], vertices[2]);
+            // if hit was closest, save t, get shading normal, and save hit 
             if let Some((t, beta, gamma, n)) = Self::hit_triangle(a, b, c, ray, t_min, closest) {
                 closest = t;
                 let normal = self.shading_normal(i, beta, gamma, n);
