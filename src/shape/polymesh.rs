@@ -2,16 +2,23 @@ use glam::{Mat4, Vec3};
 use crate::{material::Material, ray::Ray, shape::{Hit, Shape}};
 
 pub struct PolyMesh {
-    vertices: Vec<Vec3>,            // the vertex table: one point per vertex
-    triangles: Vec<[u32; 3]>,       // the index table: three vertex indices per face
-    normals: Vec<Vec3>,             // optional: one per vertex (same length as vertices)
+    pub vertices: Vec<Vec3>,            // the vertex table: one point per vertex
+    pub triangles: Vec<[u32; 3]>,       // the index table: three vertex indices per face
+    pub normals: Vec<Vec3>,             // table of normals
+    pub normal_indices: Vec<[u32; 3]>,  // index table for normals, matches vertices of triangles
     transform: Mat4,
     material: Material
 }
 
 impl PolyMesh {
-     pub fn new(vertices: Vec<Vec3>, triangles: Vec<[u32; 3]>, normals: Vec<Vec3>, material: Material) -> PolyMesh {
-        PolyMesh {vertices, triangles, normals, transform: Mat4::IDENTITY, material}
+     pub fn new(vertices: Vec<Vec3>, triangles: Vec<[u32; 3]>, normals: Vec<Vec3>, normal_indices: Vec<[u32; 3]>, material: Material) -> PolyMesh {
+        PolyMesh {vertices, triangles, normals, normal_indices, transform: Mat4::IDENTITY, material}
+     }
+
+     pub fn default() -> PolyMesh {
+        let light_gray = Material::new(Vec3::new(0.7, 0.7, 0.7), Vec3::new(0.1, 0.1, 0.1), 8.0);
+        PolyMesh {vertices: Vec::<Vec3>::new(), triangles: Vec::<[u32; 3]>::new(), normals: Vec::<Vec3>::new(), 
+                   normal_indices: Vec::<[u32; 3]>::new(), transform: Mat4::IDENTITY, material: light_gray}
      }
 
      // gets index of triangle (t) and returns 3 vertices of triangle
@@ -66,11 +73,12 @@ impl PolyMesh {
             return face_normal;
         }
 
-        let [i, j, k] = self.triangles[tri];
+        let [ni, nj, nk] = self.normal_indices[tri];
+
         let alpha = 1.0 - beta - gamma;
-        let n = alpha * self.normals[i as usize]
-                + beta * self.normals[j as usize]
-                + gamma * self.normals[k as usize];
+        let n = alpha * self.normals[ni as usize]
+                + beta * self.normals[nj as usize]
+                + gamma * self.normals[nk as usize];
         n.normalize()   // the blend is < 1 long
     }
 

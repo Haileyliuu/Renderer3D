@@ -4,6 +4,7 @@ mod film;
 mod shape;
 mod render;
 mod material;
+mod obj_loader;
 
 use glam::Vec3;
 use camera::Camera;
@@ -54,7 +55,7 @@ fn main() {
         [0, 3, 2], [0, 2, 1], // base
         [0, 1, 4], [1, 2, 4], [2, 3, 4], [3, 0, 4], // sides
     ];
-    let pyramid = PolyMesh::new(pyramid_vertices, pyramid_triangles, Vec::new(), red);
+    let pyramid = PolyMesh::new(pyramid_vertices, pyramid_triangles, Vec::new(), Vec::new(), red);
 
     let smooth_vertices = vec![
         Vec3::new(-1.0, 1.0, 4.0),
@@ -71,15 +72,21 @@ fn main() {
     ];
 
     let smooth_normals = vec![
-        Vec3::new(1.0, 1.0, 1.0).normalize(), // 0
-        Vec3::new(1.0, 1.0, 1.0).normalize(), // 1
+        Vec3::new(1.0, 1.0, 1.0).normalize(), // 0, 1, 3
         Vec3::new(-1.0, 1.0, -1.0).normalize(), // 2
-        Vec3::new(1.0, 1.0, 1.0).normalize(), // 3
         Vec3::new(1.0, 1.0, -1.0).normalize(), // 4
     ];
 
-    let smooth_mesh = PolyMesh::new(smooth_vertices, smooth_triangles, smooth_normals, yellow);
-    let shapes: Vec<Box<dyn Shape>> = vec![Box::new(sphere1), Box::new(sphere2), Box::new(sphere3), Box::new(sphere4), Box::new(plane), Box::new(pyramid), Box::new(smooth_mesh)];
+    let smooth_normals_indices = vec![
+        [0, 0, 0],
+        [0, 0, 1],
+        [0, 2, 0],
+    ];
+
+    let smooth_mesh = PolyMesh::new(smooth_vertices, smooth_triangles, smooth_normals, smooth_normals_indices, yellow);
+
+    let blueberry = obj_loader::load_obj_file("models/blueberry.obj").expect("Could not load OBJ file");
+    let shapes: Vec<Box<dyn Shape>> = vec![Box::new(blueberry), Box::new(plane)];
     
     // lights
     let white_light = Light::new(Vec3::new(-4.0, 10.0, 0.0), Vec3::new(0.8, 0.8, 0.8)); // white light
