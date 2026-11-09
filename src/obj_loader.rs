@@ -2,12 +2,8 @@ use std::fs;
 use glam::Vec3;
 use crate::shape::polymesh::PolyMesh;
 
-pub fn load_obj_file(path: &str) -> Result<PolyMesh, std::io::Error> {
+pub fn load_obj(path: &str) -> Result<PolyMesh, std::io::Error>  {
     let text = fs::read_to_string(path)?;
-    Ok(load_obj(&text))
-}
-
-pub fn load_obj(text: &str) -> PolyMesh {
     let mut mesh = PolyMesh::default();
     for line in text.lines() {
         // split line into words at whitespace
@@ -50,5 +46,5 @@ pub fn load_obj(text: &str) -> PolyMesh {
             _ => {} // vt, #, g, usemtl ... ignored for now
         }
     }
-    mesh
+    Ok(mesh)
 }
