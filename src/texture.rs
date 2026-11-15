@@ -31,12 +31,12 @@ impl Texture {
     }
 
     pub fn sample_nearest(&self, uv: Vec2) -> Vec3 {
-        self.texel((uv.x * self.width as f32).floor() as i32, (uv.y * self.height as f32).floor() as i32)
+        self.texel((uv.x * self.width as f32).floor() as i32, ((1.0 - uv.y) * self.height as f32).floor() as i32)
     }
 
     pub fn sample_bilinear(&self, uv: Vec2) -> Vec3 {
         // from texel centers (x, y)
-        let (x, y) = (uv.x * self.width as f32 - 0.5, uv.y * self.height as f32 - 0.5);
+        let (x, y) = (uv.x * self.width as f32 - 0.5, (1.0 - uv.y) * self.height as f32 - 0.5);
         let (s, t) = (x - x.floor(), y - y.floor());
         let (i, j) = (x.floor() as i32, y.floor() as i32);
         let top = self.texel(i, j).lerp(self.texel(i+1, j), s);
