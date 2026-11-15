@@ -1,16 +1,17 @@
 use glam::Vec3;
-use crate::{camera::Camera, film::Color, ray::Ray, shape::{Hit, Shape}};
+use crate::{camera::Camera, film::Color, ray::Ray, shape::{Hit, Shape}, texture::Texture};
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Material {
-    k_d: Vec3,      // diffuse color
-    k_s: Vec3,      // specular color
-    p: f32,         // Phong exponent
+    pub k_d: Vec3,      // diffuse color
+    pub k_s: Vec3,      // specular color
+    pub p: f32,         // Phong exponent
+    pub texture: Option<Texture>
 }
 
 impl Material {
-    pub fn new(k_d: Vec3, k_s: Vec3, p: f32) -> Material{
-        Material { k_d, k_s, p}
+    pub fn new(k_d: Vec3, k_s: Vec3, p: f32, texture: Option<Texture>) -> Material{
+        Material { k_d, k_s, p, texture}
     }
 
     // uses Blinn Phong shading to shade pixel 
@@ -27,7 +28,11 @@ impl Material {
         // first term ambient: ka Ia 
         // ka = kd; Ia = a small constant, light from everywhere
         let ia = Vec3::new(0.3, 0.3, 0.3);
-        let ambient = self.k_d * ia;
+        let base_color = match (&self.texture, hit.uv) {
+            (Some(texture), Some(uv)) => {texture.sample_bilinear(uv)}
+            _ => {self.k_d}
+        };
+        let ambient = base_color * ia;
 
         // for each light in the scene
         // sum(kd I max(0, n · l) + ks I max(0, n · h)^p)
@@ -49,7 +54,7 @@ impl Material {
                 }
             }
             if !skip_light {
-                let diffuse = self.k_d * light.intensity * n.dot(l).max(0.0);
+                let diffuse = base_color * light.intensity * n.dot(l).max(0.0);
 
                 // find h: the half vector between l and v
                 let h = (v + l).normalize();

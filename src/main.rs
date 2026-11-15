@@ -5,6 +5,7 @@ mod shape;
 mod render;
 mod material;
 mod obj_loader;
+mod texture;
 
 use glam::Vec3;
 use camera::Camera;
@@ -22,26 +23,26 @@ fn main() {
 
     // setup scene
     // materials
-    let red = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.3, 0.3, 0.3), 100.0);
-    let yellow = Material::new(Vec3::new(1.0, 1.0, 0.0), Vec3::new(0.3, 0.3, 0.3), 100.0);
-    let blue = Material::new(Vec3::new(0.2, 0.0, 0.9), Vec3::new(0.3, 0.3, 0.3), 100.0);
-    let green = Material::new(Vec3::new(0.2, 0.8, 0.2), Vec3::new(0.3, 0.3, 0.3), 100.0);
-    let light_gray = Material::new(Vec3::new(0.7, 0.7, 0.7), Vec3::new(0.1, 0.1, 0.1), 8.0);
+    let red = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.3, 0.3, 0.3), 100.0, None);
+    let yellow = Material::new(Vec3::new(1.0, 1.0, 0.0), Vec3::new(0.3, 0.3, 0.3), 100.0, None);
+    let blue = Material::new(Vec3::new(0.2, 0.0, 0.9), Vec3::new(0.3, 0.3, 0.3), 100.0, None);
+    let green = Material::new(Vec3::new(0.2, 0.8, 0.2), Vec3::new(0.3, 0.3, 0.3), 100.0, None);
+    let light_gray = Material::new(Vec3::new(0.7, 0.7, 0.7), Vec3::new(0.1, 0.1, 0.1), 8.0, None);
 
-    let shiny1 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 10.0);
-    let shiny2 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 100.0);
-    let shiny3 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 1000.0);
-    let shiny4 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 10000.0);
+    let shiny1 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 10.0, None);
+    let shiny2 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 100.0, None);
+    let shiny3 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 1000.0, None);
+    let shiny4 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 10000.0, None);
 
 
     // shapes
-    let sphere1 = Sphere::new(1.2, Vec3::new(-6.0, 1.0, 0.0), red);
-    let sphere2 = Sphere::new(1.2, Vec3::new(-2.0, 1.0, 0.0), yellow);
-    let sphere3 = Sphere::new(1.2, Vec3::new(2.0, 1.0, 0.0), blue);
-    let sphere4 = Sphere::new(1.2, Vec3::new(6.0, 1.0, 0.0), green);
+    let sphere1 = Sphere::new(1.2, Vec3::new(-6.0, 1.0, 0.0), red.clone());
+    let sphere2 = Sphere::new(1.2, Vec3::new(-2.0, 1.0, 0.0), yellow.clone());
+    let sphere3 = Sphere::new(1.2, Vec3::new(2.0, 1.0, 0.0), blue.clone());
+    let sphere4 = Sphere::new(1.2, Vec3::new(6.0, 1.0, 0.0), green.clone());
     
 
-    let plane = Plane::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0), light_gray);
+    let plane = Plane::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0), light_gray.clone());
 
     let pyramid_vertices = vec![
         Vec3::new(-1.0, 0.0,  1.0), 
@@ -55,7 +56,7 @@ fn main() {
         [0, 3, 2], [0, 2, 1], // base
         [0, 1, 4], [1, 2, 4], [2, 3, 4], [3, 0, 4], // sides
     ];
-    let pyramid = PolyMesh::new(pyramid_vertices, pyramid_triangles, Vec::new(), Vec::new(), red);
+    let pyramid = PolyMesh::new(pyramid_vertices, pyramid_triangles, Vec::new(), Vec::new(), Vec::new(), Vec::new(),red.clone());
 
     let smooth_vertices = vec![
         Vec3::new(-1.0, 1.0, 4.0),
@@ -83,12 +84,12 @@ fn main() {
         [0, 2, 0],
     ];
 
-    let smooth_mesh = PolyMesh::new(smooth_vertices, smooth_triangles, smooth_normals, smooth_normals_indices, yellow);
+    let smooth_mesh = PolyMesh::new(smooth_vertices, smooth_triangles, smooth_normals, smooth_normals_indices, Vec::new(),Vec::new(),yellow.clone());
 
-    let blueberry = obj_loader::load_obj("models/blueberry.obj").expect("Could not load OBJ file");
+    let blueberry = obj_loader::load_obj_texture("models/blueberry.obj", "textures/Blueberry_BaseColor.png").expect("Could not load OBJ file");
     let table_vase = obj_loader::load_obj("models/table_vase.obj").expect("Could not load OBJ file");
     
-    let shapes: Vec<Box<dyn Shape>> = vec![Box::new(table_vase)];
+    let shapes: Vec<Box<dyn Shape>> = vec![Box::new(plane), Box::new(blueberry)];
     
     // lights
     let white_light = Light::new(Vec3::new(-2.0, 10.0, -6.0), Vec3::new(1.0, 1.0, 1.0)); // white light
@@ -139,7 +140,7 @@ fn main() {
     let shiny_sphere2 = Sphere::new(1.2, Vec3::new(-2.0, 1.0, 0.0), shiny2);
     let shiny_sphere3 = Sphere::new(1.2, Vec3::new(2.0, 1.0, 0.0), shiny3);
     let shiny_sphere4 = Sphere::new(1.2, Vec3::new(6.0, 1.0, 0.0), shiny4);
-    let plane = Plane::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0), light_gray);
+    let plane = Plane::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0), light_gray.clone());
     let shinyness: Vec<Box<dyn Shape>> = vec![Box::new(shiny_sphere1), Box::new(shiny_sphere2), Box::new(shiny_sphere3), Box::new(shiny_sphere4), Box::new(plane)];
 
     let camera = Camera::new(Vec3::new(0.0, 8.0, 8.0), 

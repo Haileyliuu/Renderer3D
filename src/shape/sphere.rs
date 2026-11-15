@@ -19,8 +19,8 @@ impl Shape for Sphere {
         self.transform = m * self.transform;
     }
 
-    fn get_material(&self) -> Material {
-        self.material
+    fn get_material(&self) -> &Material {
+        &self.material
     }
 
     // if ray intersects with sphere, return nearest hit between t_min and t_max
@@ -58,7 +58,7 @@ impl Shape for Sphere {
         }
 
         let hit_point = e + t * d;
-        return Some(Hit::new(t, hit_point, (hit_point - self.position)/self.radius));
+        return Some(Hit::new(t, hit_point, (hit_point - self.position)/self.radius, None));
     }
 }
 

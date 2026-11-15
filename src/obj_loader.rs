@@ -1,10 +1,23 @@
 use std::fs;
-use glam::Vec3;
-use crate::shape::polymesh::PolyMesh;
+use glam::{Vec2, Vec3};
+use crate::{shape::polymesh::PolyMesh, texture::{Texture}};
 
-pub fn load_obj(path: &str) -> Result<PolyMesh, std::io::Error>  {
-    let text = fs::read_to_string(path)?;
+pub fn load_obj_texture(obj_path: &str, tex_path: &str) -> Result<PolyMesh, Box<dyn std::error::Error>>  {
+    let obj_text = fs::read_to_string(obj_path)?;
+    let texture = Texture::load_texture(tex_path)?;
+    let mut mesh = PolyMesh::new_texture(texture);
+    parse_obj_text(&obj_text, &mut mesh);
+    Ok(mesh)
+}
+
+pub fn load_obj(obj_path: &str) -> Result<PolyMesh, std::io::Error>  {
+    let text = fs::read_to_string(obj_path)?;
     let mut mesh = PolyMesh::default();
+    parse_obj_text(&text, &mut mesh);
+    Ok(mesh)
+}
+
+fn parse_obj_text(text: &str, mesh: &mut PolyMesh){
     for line in text.lines() {
         // split line into words at whitespace
         let mut w = line.split_whitespace();
@@ -20,9 +33,14 @@ pub fn load_obj(path: &str) -> Result<PolyMesh, std::io::Error>  {
                 let n: Vec<f32> = w.map(|s| s.parse().unwrap()).collect();
                 mesh.normals.push(Vec3::new(n[0], n[1], n[2]));
             }
+            Some("vt") => {
+                let uv: Vec<f32> = w.map(|s| s.parse().unwrap()).collect();
+                mesh.uvs.push(Vec2::new(uv[0], uv[1]));
+            }
             // if first word is f (f 1/1/1 2/2/1 5/3/1) vertex/texcoord/normal
             Some("f") => {
                 let mut v_index: Vec<u32> = Vec::new(); // vertex indices (f 1/1/1 2/2/1 5/3/1) -> [0, 1, 4]
+                let mut vt_index: Vec<Option<u32>> = Vec::new(); // vertex texture indices
                 let mut vn_index: Vec<u32> = Vec::new(); // vertex normal indices (f 1/1/1 2/2/1 5/3/1) -> [0, 0, 0]
 
                 for s in w {
@@ -30,8 +48,11 @@ pub fn load_obj(path: &str) -> Result<PolyMesh, std::io::Error>  {
 
                     v_index.push(parts.next().unwrap() // "7/3/2" -> "7"
                         .parse::<u32>().unwrap()-1); // 1-based -> 0-based
-
-                    parts.next(); // skip texture coordinate index
+                    
+                    let vt = parts.next().and_then(|value| {
+                        if value.is_empty() { None } 
+                        else { Some(value.parse::<u32>().unwrap() - 1)}});
+                    vt_index.push(vt);
 
                     vn_index.push(parts.next().unwrap() // "7/3/2" -> "2"
                         .parse::<u32>().unwrap()-1); // 1-based -> 0-based
@@ -40,11 +61,13 @@ pub fn load_obj(path: &str) -> Result<PolyMesh, std::io::Error>  {
                 // fan: polygon -> triangle 
                 for i in 1..v_index.len() - 1 {
                     mesh.triangles.push([v_index[0], v_index[i], v_index[i+1]]);
-                    mesh.normal_indices.push([vn_index[0], vn_index[i], vn_index[i + 1]]);
+                    let uv_triangle = match (vt_index[0], vt_index[i], vt_index[i+1]) {
+                        (Some(a), Some(b), Some(c)) => Some([a, b, c]), _ => None};
+                    mesh.uv_indices.push(uv_triangle);
+                    mesh.normal_indices.push([vn_index[0], vn_index[i], vn_index[i+1]]);
                 }
             }
             _ => {} // vt, #, g, usemtl ... ignored for now
         }
     }
-    Ok(mesh)
 }

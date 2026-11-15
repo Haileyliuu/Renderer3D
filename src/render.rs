@@ -1,4 +1,4 @@
-use crate::{camera::Camera, film::{Color, Film}, material::Light, shape::{Shape, sphere::Sphere}};
+use crate::{camera::Camera, film::{Color, Film}, material::Light, shape::{Shape}};
 
 pub fn render_scene(camera: &Camera, width: u32, height: u32, shapes: &[Box<dyn Shape>], lights: &[Light]) -> Film{
     let mut film = Film::new(width, height);

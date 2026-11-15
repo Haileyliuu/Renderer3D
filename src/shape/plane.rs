@@ -19,8 +19,8 @@ impl Shape for Plane {
         self.transform = m * self.transform;
     }
 
-    fn get_material(&self) -> Material {
-        self.material
+    fn get_material(&self) -> &Material {
+        &self.material
     }
 
     // if ray intersects with plane, return hit between t_min and t_max
@@ -43,6 +43,6 @@ impl Shape for Plane {
 
         // flip normal vector if pointing in same direction of ray
         let n = if denom < 0.0 {self.n} else {-self.n};  // face the ray
-        Some(Hit {t, p: e + t*d, n})
+        Some(Hit {t, p: e + t*d, n, uv: None})
     }
 }

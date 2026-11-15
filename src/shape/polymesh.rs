@@ -1,25 +1,32 @@
-use glam::{Mat4, Vec3};
-use crate::{material::Material, ray::Ray, shape::{Hit, Shape}};
+use glam::{Mat4, Vec2, Vec3};
+use crate::{material::Material, ray::Ray, shape::{Hit, Shape}, texture::{self, Texture}};
 
 pub struct PolyMesh {
     pub vertices: Vec<Vec3>,            // the vertex table: one point per vertex
     pub triangles: Vec<[u32; 3]>,       // the index table: three vertex indices per face
     pub normals: Vec<Vec3>,             // table of normals
     pub normal_indices: Vec<[u32; 3]>,  // index table for normals, matches vertices of triangles
+    pub uvs: Vec<Vec2>,                 // one (u, v) per vertex
+    pub uv_indices: Vec<Option<[u32; 3]>>,
     transform: Mat4,
     material: Material
 }
 
 impl PolyMesh {
-     pub fn new(vertices: Vec<Vec3>, triangles: Vec<[u32; 3]>, normals: Vec<Vec3>, normal_indices: Vec<[u32; 3]>, material: Material) -> PolyMesh {
-        PolyMesh {vertices, triangles, normals, normal_indices, transform: Mat4::IDENTITY, material}
+     pub fn new(vertices: Vec<Vec3>, triangles: Vec<[u32; 3]>, normals: Vec<Vec3>, normal_indices: Vec<[u32; 3]>, uvs: Vec<Vec2>, uv_indices: Vec<Option<[u32; 3]>>, material: Material) -> PolyMesh {
+        PolyMesh {vertices, triangles, normals, normal_indices, uvs, uv_indices, transform: Mat4::IDENTITY, material}
      }
 
      pub fn default() -> PolyMesh {
-        let light_gray = Material::new(Vec3::new(0.7, 0.7, 0.7), Vec3::new(0.1, 0.1, 0.1), 8.0);
-        //let red = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.3, 0.3, 0.3), 100.0);
-        PolyMesh {vertices: Vec::<Vec3>::new(), triangles: Vec::<[u32; 3]>::new(), normals: Vec::<Vec3>::new(), 
-                   normal_indices: Vec::<[u32; 3]>::new(), transform: Mat4::IDENTITY, material: light_gray}
+        let light_gray = Material::new(Vec3::new(0.7, 0.7, 0.7), Vec3::new(0.1, 0.1, 0.1), 8.0, None);
+        PolyMesh {vertices: Vec::<Vec3>::new(), triangles: Vec::<[u32; 3]>::new(), normals: Vec::<Vec3>::new(), normal_indices: Vec::<[u32; 3]>::new(), 
+                uvs: Vec::<Vec2>::new(), uv_indices: Vec::new(), transform: Mat4::IDENTITY, material: light_gray}
+     }
+
+     pub fn new_texture(texture: Texture) -> PolyMesh {
+        let material = Material::new(Vec3::new(0.7, 0.7, 0.7), Vec3::new(0.1, 0.1, 0.1), 8.0, Some(texture));
+        PolyMesh {vertices: Vec::<Vec3>::new(), triangles: Vec::<[u32; 3]>::new(), normals: Vec::<Vec3>::new(), normal_indices: Vec::<[u32; 3]>::new(), 
+                uvs: Vec::<Vec2>::new(), uv_indices: Vec::new(), transform: Mat4::IDENTITY, material}
      }
 
      // gets index of triangle (t) and returns 3 vertices of triangle
@@ -83,7 +90,12 @@ impl PolyMesh {
         n.normalize()   // the blend is < 1 long
     }
 
+    fn uv_at(&self, tri: usize, beta: f32, gamma: f32) -> Option<Vec2> {
+        let [a, b, c] = self.uv_indices[tri]?;
 
+        let alpha = 1.0 - beta - gamma;
+       Some(alpha * self.uvs[a as usize] + beta * self.uvs[b as usize] + gamma * self.uvs[c as usize])
+    }
 
 
 }
@@ -93,8 +105,8 @@ impl Shape for PolyMesh {
         self.transform = m * self.transform;
     }
 
-    fn get_material(&self) -> Material {
-        self.material
+    fn get_material(&self) -> &Material {
+        &self.material
     }
 
     // return the closest hit where the ray hit the mesh
@@ -113,7 +125,8 @@ impl Shape for PolyMesh {
             if let Some((t, beta, gamma, n)) = Self::hit_triangle(a, b, c, ray, t_min, closest) {
                 closest = t;
                 let normal = self.shading_normal(i, beta, gamma, n);
-                best = Some(Hit {t , p: e + t * d, n: normal})
+                let uv = self.uv_at(i, beta, gamma);
+                best = Some(Hit {t , p: e + t * d, n: normal, uv})
             }
         }
         best
