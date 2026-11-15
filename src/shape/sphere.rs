@@ -1,5 +1,7 @@
+use std::f32::consts::PI;
+
 use crate::{material::{Material}, ray::Ray, shape::{Hit, Shape}};
-use glam::{Vec3, Mat4};
+use glam::{Mat4, Vec2, Vec3};
 
 pub struct Sphere {
     radius: f32,
@@ -11,6 +13,16 @@ pub struct Sphere {
 impl Sphere {
     pub fn new(radius: f32, position: Vec3, material: Material) -> Sphere {
         Sphere{radius, position, transform: Mat4::IDENTITY, material}
+    }
+
+    // from point on sphere get u, v coordinates
+    fn sphere_uv(&self, point: Vec3) -> Vec2 {
+        let p = (point - self.position) / self.radius;
+
+        let u = 0.5 + p.z.atan2(p.x) / (2.0 * PI); // vertical (like longitude)
+        let v = 0.5 + p.y.asin() / PI; // horizontal (like latitude)
+
+        Vec2::new(u, v)
     }
 }
 
@@ -58,7 +70,8 @@ impl Shape for Sphere {
         }
 
         let hit_point = e + t * d;
-        return Some(Hit::new(t, hit_point, (hit_point - self.position)/self.radius, None));
+        let uv = self.sphere_uv(hit_point);
+        return Some(Hit::new(t, hit_point, (hit_point - self.position)/self.radius, Some(uv)));
     }
 }
 

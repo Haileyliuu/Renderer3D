@@ -91,6 +91,10 @@ impl PolyMesh {
     }
 
     fn uv_at(&self, tri: usize, beta: f32, gamma: f32) -> Option<Vec2> {
+        if self.uvs.is_empty() {
+            return None;
+        }
+
         let [a, b, c] = self.uv_indices[tri]?;
 
         let alpha = 1.0 - beta - gamma;

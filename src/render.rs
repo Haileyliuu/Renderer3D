@@ -1,8 +1,8 @@
 use crate::{camera::Camera, film::{Color, Film}, material::Light, shape::{Shape}};
 
-pub fn render_scene(camera: &Camera, width: u32, height: u32, shapes: &[Box<dyn Shape>], lights: &[Light]) -> Film{
+pub fn render_scene(camera: &Camera, width: u32, height: u32, shapes: &[Box<dyn Shape>], lights: &[Light], background: Color) -> Film{
     let mut film = Film::new(width, height);
-    let background = Color::new(0.2, 0.2, 0.2, 1.0);
+    let background = background;
 
     for y in 0..height {
         for x in 0..width {

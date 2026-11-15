@@ -1,3 +1,5 @@
+use crate::film::Color;
+
 mod ray;
 mod camera;
 mod film;
@@ -6,153 +8,28 @@ mod render;
 mod material;
 mod obj_loader;
 mod texture;
-
-use glam::Vec3;
-use camera::Camera;
-use shape::sphere::Sphere;
-
-use crate::{material::{Light, Material}, shape::{Shape, plane::Plane, polymesh::PolyMesh}};
+mod scenes;
 
 
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // height and width of png
     let aspect = 1.333;
     let width = 1024;
     let height = 768;
 
-    // setup scene
-    // materials
-    let red = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.3, 0.3, 0.3), 100.0, None);
-    let yellow = Material::new(Vec3::new(1.0, 1.0, 0.0), Vec3::new(0.3, 0.3, 0.3), 100.0, None);
-    let blue = Material::new(Vec3::new(0.2, 0.0, 0.9), Vec3::new(0.3, 0.3, 0.3), 100.0, None);
-    let green = Material::new(Vec3::new(0.2, 0.8, 0.2), Vec3::new(0.3, 0.3, 0.3), 100.0, None);
-    let light_gray = Material::new(Vec3::new(0.7, 0.7, 0.7), Vec3::new(0.1, 0.1, 0.1), 8.0, None);
+    //let scene = scenes::test_shapes::create()?;
+    //let scene = scenes::table_vase::create()?;
+    let scene = scenes::earth::create()?;
 
-    let shiny1 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 10.0, None);
-    let shiny2 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 100.0, None);
-    let shiny3 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 1000.0, None);
-    let shiny4 = Material::new(Vec3::new(0.8, 0.0, 0.0), Vec3::new(0.5, 0.5, 0.5), 10000.0, None);
+    let gray_background = Color::new(0.2, 0.2, 0.2, 1.0);
+    let black_background = Color::new(0.0, 0.0, 0.0, 1.0);
 
+    for (i, camera) in scene.cameras.iter().enumerate() {
+        let film = render::render_scene(&camera, width, height, &scene.shapes, &scene.lights, black_background);
+        let filename = format!("images/image{}.png", i+1);
+        film.save(&filename);
+    }
 
-    // shapes
-    let sphere1 = Sphere::new(1.2, Vec3::new(-6.0, 1.0, 0.0), red.clone());
-    let sphere2 = Sphere::new(1.2, Vec3::new(-2.0, 1.0, 0.0), yellow.clone());
-    let sphere3 = Sphere::new(1.2, Vec3::new(2.0, 1.0, 0.0), blue.clone());
-    let sphere4 = Sphere::new(1.2, Vec3::new(6.0, 1.0, 0.0), green.clone());
-    
-
-    let plane = Plane::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0), light_gray.clone());
-
-    let pyramid_vertices = vec![
-        Vec3::new(-1.0, 0.0,  1.0), 
-        Vec3::new( 1.0, 0.0,  1.0), 
-        Vec3::new( 1.0, 0.0, -1.0), 
-        Vec3::new(-1.0, 0.0, -1.0),
-        Vec3::new( 0.0, 1.5,  0.0),
-    ];
-
-    let pyramid_triangles = vec![
-        [0, 3, 2], [0, 2, 1], // base
-        [0, 1, 4], [1, 2, 4], [2, 3, 4], [3, 0, 4], // sides
-    ];
-    let pyramid = PolyMesh::new(pyramid_vertices, pyramid_triangles, Vec::new(), Vec::new(), Vec::new(), Vec::new(),red.clone());
-
-    let smooth_vertices = vec![
-        Vec3::new(-1.0, 1.0, 4.0),
-        Vec3::new( 1.0, 0.0, 4.0),
-        Vec3::new( -1.0, 0.0, 2.0),
-        Vec3::new( 1.0, 1.0, 2.0),
-        Vec3::new( 1.0, 1.0, 6.0),
-    ];
-
-    let smooth_triangles = vec![
-        [0, 1, 3],
-        [0, 3, 2],
-        [0, 4, 1],
-    ];
-
-    let smooth_normals = vec![
-        Vec3::new(1.0, 1.0, 1.0).normalize(), // 0, 1, 3
-        Vec3::new(-1.0, 1.0, -1.0).normalize(), // 2
-        Vec3::new(1.0, 1.0, -1.0).normalize(), // 4
-    ];
-
-    let smooth_normals_indices = vec![
-        [0, 0, 0],
-        [0, 0, 1],
-        [0, 2, 0],
-    ];
-
-    let smooth_mesh = PolyMesh::new(smooth_vertices, smooth_triangles, smooth_normals, smooth_normals_indices, Vec::new(),Vec::new(),yellow.clone());
-
-    let blueberry = obj_loader::load_obj_texture("models/blueberry.obj", "textures/Blueberry_BaseColor.png").expect("Could not load OBJ file");
-    let table_vase = obj_loader::load_obj("models/table_vase.obj").expect("Could not load OBJ file");
-    
-    let shapes: Vec<Box<dyn Shape>> = vec![Box::new(plane), Box::new(blueberry)];
-    
-    // lights
-    let white_light = Light::new(Vec3::new(-2.0, 10.0, -6.0), Vec3::new(1.0, 1.0, 1.0)); // white light
-    let red_light = Light::new(Vec3::new(-4.0, 10.0, 0.0), Vec3::new(0.5, 0.2, 0.2)); // red light
-    let green_light = Light::new(Vec3::new(4.0, 10.0, 0.0), Vec3::new(0.2, 0.5, 0.2)); // green light
-    let blue_light = Light::new(Vec3::new(0.0, 5.0, 0.0), Vec3::new(0.1, 0.1, 0.5)); // blue light
-    let pink_light = Light::new(Vec3::new(4.0, 2.0, 1.0), Vec3::new(0.5, 0.3, 0.4)); // pink light
-    let lights = vec![white_light, pink_light, blue_light];
-
-    // angle 1
-    let camera = Camera::new(Vec3::new(0.09, 3.42, -5.42), 
-                                    Vec3::new(0.0, 2.0, 0.0),
-                                    aspect,
-                                    60.0,
-                                    Vec3::new(0.0, 1.0, 0.0));
-
-    let film = render::render_scene(&camera, width, height, &shapes, &lights);
-
-    film.save("images/angle1.png");
-
-
-    // angle 2
-    let camera = Camera::new(Vec3::new(5.0, 5.8, 1.0), 
-                                    Vec3::new(0.0, 2.0, 0.0),
-                                    aspect,
-                                    60.0,
-                                    Vec3::new(0.0, 1.0, 0.0));
-
-    let film = render::render_scene(&camera, width, height, &shapes, &lights);
-
-    film.save("images/angle2.png");
-
-
-    // angle 3
-    let camera = Camera::new(Vec3::new(-5.09, 6.74, 5.0), 
-                                    Vec3::new(0.0, 2.0, 0.0),
-                                    aspect,
-                                    60.0,
-                                    Vec3::new(0.0, 1.0, 0.0));
-
-    let film = render::render_scene(&camera, width, height, &shapes, &lights);
-
-    film.save("images/angle3.png");
-
-
-    // shinyness
-    let shiny_sphere1 = Sphere::new(1.2, Vec3::new(-6.0, 1.0, 0.0), shiny1);
-    let shiny_sphere2 = Sphere::new(1.2, Vec3::new(-2.0, 1.0, 0.0), shiny2);
-    let shiny_sphere3 = Sphere::new(1.2, Vec3::new(2.0, 1.0, 0.0), shiny3);
-    let shiny_sphere4 = Sphere::new(1.2, Vec3::new(6.0, 1.0, 0.0), shiny4);
-    let plane = Plane::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0), light_gray.clone());
-    let shinyness: Vec<Box<dyn Shape>> = vec![Box::new(shiny_sphere1), Box::new(shiny_sphere2), Box::new(shiny_sphere3), Box::new(shiny_sphere4), Box::new(plane)];
-
-    let camera = Camera::new(Vec3::new(0.0, 8.0, 8.0), 
-                                    Vec3::new(0.0, 0.0, 0.0),
-                                    aspect,
-                                    60.0,
-                                    Vec3::new(0.0, 1.0, 0.0));
-
-    //let film = render::render_scene(&camera, width, height, &shinyness, &lights);
-
-    //film.save("images/shinyness.png");
-
-
+    Ok(())
 }
-
